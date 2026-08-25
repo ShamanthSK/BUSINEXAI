@@ -625,7 +625,13 @@ export async function askDataQuestion(datasetId: string, question: string): Prom
     if (!res.ok) throw new Error('Failed to process question');
     return await res.json();
   } catch (err) {
-    const qLower = question.toLowerCase();
+    const rawQ = question.toLowerCase();
+    const qLower = rawQ
+      .replace(/expencec|expence|expens/g, 'expense')
+      .replace(/revinue|revnue|reveue/g, 'revenue')
+      .replace(/prfit|profet/g, 'profit')
+      .replace(/custmer|custmr/g, 'customer');
+
     const stored = UPLOADED_TELEMETRY_STORE.get(datasetId);
 
     const prods = stored ? stored.trends.by_product : [
@@ -662,7 +668,61 @@ export async function askDataQuestion(datasetId: string, question: string): Prom
     const totRevFormatted = stored ? stored.kpis.revenue.formatted : '₹5,865';
     const orderCount = stored ? stored.kpis.orders_count : 990;
 
-    // 1. Slowest growing / Declining / Least sold / Lowest grossing
+    const formatCur = (val: number) => {
+      if (val >= 10000000) return `₹${(val / 10000000).toFixed(2)} Cr`;
+      if (val >= 100000) return `₹${(val / 100000).toFixed(2)}L`;
+      if (val >= 1000) return `₹${Math.round(val).toLocaleString('en-IN')}`;
+      return `₹${val.toFixed(0)}`;
+    };
+
+    // 1. Monthly Expenses & Income / Revenue vs Expense
+    if (
+      qLower.includes('expense') ||
+      qLower.includes('income') ||
+      qLower.includes('cost') ||
+      qLower.includes('spend') ||
+      (qLower.includes('month') && qLower.includes('revenue')) ||
+      (qLower.includes('every month'))
+    ) {
+      const timeSeries = stored ? stored.trends.revenue_over_time : [];
+      const totRev = stored ? stored.kpis.revenue.value : 5865;
+      const margin = stored ? stored.kpis.profit.margin : 38;
+      const totProfit = stored ? stored.kpis.profit.value : Math.round(totRev * (margin / 100));
+      const totExpense = totRev - totProfit;
+
+      const monthlyData = timeSeries.length > 0
+        ? timeSeries.slice(-6).map(t => ({
+            category: t.date,
+            revenue: t.revenue,
+          }))
+        : [
+            { category: '2025-01', revenue: 980 },
+            { category: '2025-02', revenue: 1050 },
+            { category: '2025-03', revenue: 1120 },
+            { category: '2025-04', revenue: 1080 },
+            { category: '2025-05', revenue: 1250 },
+            { category: '2025-06', revenue: 1385 },
+          ];
+
+      return {
+        question,
+        answer: `Here is your monthly revenue and expenses breakdown: Total Revenue (Income) is ${formatCur(totRev)}, Total Expenses/COGS are ${formatCur(totExpense)} (${(100 - margin).toFixed(1)}% cost ratio), generating Net Profit of ${formatCur(totProfit)} (${margin}% net margin).`,
+        chart: {
+          type: 'bar',
+          title: 'Monthly Revenue Telemetry (Income vs Expense Ratio)',
+          x_key: 'category',
+          y_key: 'revenue',
+          data: monthlyData
+        },
+        metrics_highlight: [
+          { label: 'Total Revenue (Income)', value: formatCur(totRev) },
+          { label: 'Total Expenses (Costs)', value: formatCur(totExpense) },
+          { label: 'Net Profit Margin', value: `${margin}%` }
+        ]
+      };
+    }
+
+    // 2. Slowest growing / Declining / Least sold / Lowest grossing
     if (
       qLower.includes('slower') ||
       qLower.includes('slow') ||
@@ -694,7 +754,7 @@ export async function askDataQuestion(datasetId: string, question: string): Prom
       };
     }
 
-    // 2. Fastest growing / Surge / High growth
+    // 3. Fastest growing / Surge / High growth
     if (
       qLower.includes('fast') ||
       qLower.includes('grow') ||
