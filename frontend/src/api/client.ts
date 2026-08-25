@@ -684,39 +684,57 @@ export async function askDataQuestion(datasetId: string, question: string): Prom
       (qLower.includes('month') && qLower.includes('revenue')) ||
       (qLower.includes('every month'))
     ) {
-      const timeSeries = stored ? stored.trends.revenue_over_time : [];
-      const totRev = stored ? stored.kpis.revenue.value : 5865;
-      const margin = stored ? stored.kpis.profit.margin : 38;
-      const totProfit = stored ? stored.kpis.profit.value : Math.round(totRev * (margin / 100));
-      const totExpense = totRev - totProfit;
+      const yearMatch = rawQ.match(/\b(20\d\d)\b/);
+      const targetYear = yearMatch ? yearMatch[1] : null;
 
-      const monthlyData = timeSeries.length > 0
-        ? timeSeries.slice(-6).map(t => ({
-            category: t.date,
-            revenue: t.revenue,
-          }))
-        : [
-            { category: '2025-01', revenue: 980 },
-            { category: '2025-02', revenue: 1050 },
-            { category: '2025-03', revenue: 1120 },
-            { category: '2025-04', revenue: 1080 },
-            { category: '2025-05', revenue: 1250 },
-            { category: '2025-06', revenue: 1385 },
-          ];
+      const timeSeries = stored ? stored.trends.revenue_over_time : [
+        { date: '2024-01', revenue: 280 },
+        { date: '2024-02', revenue: 310 },
+        { date: '2024-03', revenue: 340 },
+        { date: '2024-04', revenue: 320 },
+        { date: '2024-05', revenue: 380 },
+        { date: '2024-06', revenue: 410 },
+        { date: '2024-07', revenue: 430 },
+        { date: '2024-08', revenue: 450 },
+        { date: '2024-09', revenue: 480 },
+        { date: '2024-10', revenue: 510 },
+        { date: '2024-11', revenue: 530 },
+        { date: '2024-12', revenue: 560 },
+        { date: '2025-01', revenue: 580 },
+        { date: '2025-02', revenue: 600 },
+      ];
+
+      const filteredSeries = targetYear
+        ? timeSeries.filter(t => t.date.includes(targetYear))
+        : timeSeries;
+
+      const activeSeries = filteredSeries.length > 0 ? filteredSeries : timeSeries.slice(-6);
+
+      let calcRev = activeSeries.reduce((acc, t) => acc + t.revenue, 0);
+      if (calcRev === 0) calcRev = stored ? stored.kpis.revenue.value : 5000;
+
+      const margin = stored ? stored.kpis.profit.margin : 38;
+      const calcProfit = Math.round(calcRev * (margin / 100));
+      const calcExpense = calcRev - calcProfit;
+
+      const yearLabel = targetYear ? `for the year ${targetYear}` : '';
 
       return {
         question,
-        answer: `Here is your monthly revenue and expenses breakdown: Total Revenue (Income) is ${formatCur(totRev)}, Total Expenses/COGS are ${formatCur(totExpense)} (${(100 - margin).toFixed(1)}% cost ratio), generating Net Profit of ${formatCur(totProfit)} (${margin}% net margin).`,
+        answer: `Here is your monthly revenue and expenses breakdown ${yearLabel}: Total Revenue (Income) ${yearLabel} is ${formatCur(calcRev)}, Total Expenses/COGS are ${formatCur(calcExpense)} (${(100 - margin).toFixed(1)}% cost ratio), generating Net Profit of ${formatCur(calcProfit)} (${margin}% net margin).`,
         chart: {
           type: 'bar',
-          title: 'Monthly Revenue Telemetry (Income vs Expense Ratio)',
+          title: `Monthly Revenue & Expenses Telemetry ${targetYear ? `(${targetYear})` : ''}`,
           x_key: 'category',
           y_key: 'revenue',
-          data: monthlyData
+          data: activeSeries.map(t => ({
+            category: t.date,
+            revenue: t.revenue,
+          }))
         },
         metrics_highlight: [
-          { label: 'Total Revenue (Income)', value: formatCur(totRev) },
-          { label: 'Total Expenses (Costs)', value: formatCur(totExpense) },
+          { label: `Total Revenue ${targetYear || ''}`, value: formatCur(calcRev) },
+          { label: `Total Expenses ${targetYear || ''}`, value: formatCur(calcExpense) },
           { label: 'Net Profit Margin', value: `${margin}%` }
         ]
       };
