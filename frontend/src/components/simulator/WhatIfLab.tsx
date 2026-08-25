@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sliders, TrendingUp, DollarSign, Users, Award, RotateCcw, Download, FileSpreadsheet } from 'lucide-react';
+import { Sliders, TrendingUp, DollarSign, Users, Award, RotateCcw, Download, FileSpreadsheet, Camera } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts';
 import type { WhatIfResponse } from '../../types';
 import { runWhatIfSim } from '../../api/client';
@@ -89,6 +89,41 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({ activeDatasetId, initialPa
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleDownloadChartPNG = () => {
+    const container = document.getElementById('whatif-chart-container');
+    if (!container) return;
+    const svgElement = container.querySelector('svg');
+    if (!svgElement) return;
+
+    const svgData = new XMLSerializer().serializeToString(svgElement);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+
+    const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(svgBlob);
+
+    img.onload = () => {
+      canvas.width = (img.width || 800) * 2;
+      canvas.height = (img.height || 400) * 2;
+      if (ctx) {
+        ctx.fillStyle = '#00113a';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      }
+      const pngUrl = canvas.toDataURL('image/png');
+      const downloadLink = document.createElement('a');
+      downloadLink.href = pngUrl;
+      downloadLink.download = `BUSINEX_WhatIf_Trajectory_Chart_${activeDatasetId}.png`;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      URL.revokeObjectURL(url);
+    };
+
+    img.src = url;
   };
 
   // Helper for rupee spend estimation
@@ -274,12 +309,21 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({ activeDatasetId, initialPa
           )}
 
           {/* Morphing Chart Visualization */}
-          <div className="p-6 rounded-2xl glass-panel">
+          <div id="whatif-chart-container" className="p-6 rounded-2xl glass-panel relative">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-indigo-400" />
                 <span>Baseline vs. Simulated Trajectory Morphing</span>
               </h3>
+
+              <button
+                onClick={handleDownloadChartPNG}
+                className="px-3 py-1.5 rounded-lg glass-panel hover:bg-indigo-600/40 border-indigo-500/40 text-[11px] text-indigo-300 font-semibold transition-all flex items-center gap-1.5 shadow"
+                title="Download Graph Image as PNG"
+              >
+                <Camera className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Download Graph (PNG)</span>
+              </button>
             </div>
 
             <div className="h-64 w-full">
