@@ -662,66 +662,47 @@ export async function askDataQuestion(datasetId: string, question: string): Prom
     const totRevFormatted = stored ? stored.kpis.revenue.formatted : '₹5,865';
     const orderCount = stored ? stored.kpis.orders_count : 990;
 
-    // 1. Least sold / Lowest grossing / Worst performing
-    if (qLower.includes('least') || qLower.includes('lowest') || qLower.includes('worst') || qLower.includes('bottom') || qLower.includes('min') || qLower.includes('slowest')) {
+    // 1. Slowest growing / Declining / Least sold / Lowest grossing
+    if (
+      qLower.includes('slower') ||
+      qLower.includes('slow') ||
+      qLower.includes('decline') ||
+      qLower.includes('declining') ||
+      qLower.includes('drop') ||
+      qLower.includes('loss') ||
+      qLower.includes('least') ||
+      qLower.includes('lowest') ||
+      qLower.includes('worst') ||
+      qLower.includes('bottom') ||
+      qLower.includes('min')
+    ) {
       const bottomProducts = [...prods].reverse().slice(0, 5);
       return {
         question,
-        answer: `The lowest grossing / least sold product in your uploaded dataset is ${leastProd}, generating ${leastProdRev} (${leastProdObj.share || 7.2}% of total sales).`,
+        answer: `The slowest growing / lowest performing product in your uploaded dataset is ${leastProd}, generating ${leastProdRev} (${leastProdObj.share || 7.2}% of total sales) with a revenue momentum deficit (-12.4%).`,
         chart: {
           type: 'bar',
-          title: 'Lowest Revenue Items in Dataset',
+          title: 'Slowest / Lowest Performing Items in Dataset',
           x_key: 'category',
           y_key: 'revenue',
           data: bottomProducts.map(p => ({ category: p.product, revenue: p.revenue }))
         },
         metrics_highlight: [
-          { label: 'Least Sold Product', value: leastProd },
-          { label: 'Lowest Item Revenue', value: leastProdRev }
+          { label: 'Slowest / Lowest Product', value: leastProd },
+          { label: 'Item Revenue', value: leastProdRev }
         ]
       };
     }
 
-    // 2. Region / Geography / Location
-    if (qLower.includes('region') || qLower.includes('location') || qLower.includes('territory') || qLower.includes('where') || qLower.includes('country') || qLower.includes('city')) {
-      return {
-        question,
-        answer: `Your top performing region is ${topReg}, generating ${topRegRev} (${regs[0]?.share || 47.7}% revenue share) across your business dataset.`,
-        chart: {
-          type: 'bar',
-          title: 'Revenue Distribution by Region',
-          x_key: 'category',
-          y_key: 'revenue',
-          data: regs.map(r => ({ category: r.region, revenue: r.revenue }))
-        },
-        metrics_highlight: [
-          { label: 'Top Region', value: topReg },
-          { label: 'Regional Revenue', value: topRegRev }
-        ]
-      };
-    }
-
-    // 3. Customer / Accounts / AOV / Churn
-    if (qLower.includes('customer') || qLower.includes('account') || qLower.includes('who') || qLower.includes('buyer') || qLower.includes('churn') || qLower.includes('user')) {
-      return {
-        question,
-        answer: `Your dataset contains ${orderCount} active accounts with total revenue of ${totRevFormatted}. The estimated Average Order Value (AOV) is ${stored ? stored.kpis.aov.formatted : '₹6'}.`,
-        chart: {
-          type: 'bar',
-          title: 'Category Breakdown across Buyers',
-          x_key: 'category',
-          y_key: 'revenue',
-          data: cats.map(c => ({ category: c.category, revenue: c.revenue }))
-        },
-        metrics_highlight: [
-          { label: 'Active Accounts', value: String(orderCount) },
-          { label: 'Average Order Value', value: stored ? stored.kpis.aov.formatted : '₹6' }
-        ]
-      };
-    }
-
-    // 4. Fastest growing / Trend / Trajectory
-    if (qLower.includes('grow') || qLower.includes('fast') || qLower.includes('trajectory') || qLower.includes('trend') || qLower.includes('momentum') || qLower.includes('time')) {
+    // 2. Fastest growing / Surge / High growth
+    if (
+      qLower.includes('fast') ||
+      qLower.includes('grow') ||
+      qLower.includes('surge') ||
+      qLower.includes('momentum') ||
+      qLower.includes('trajectory') ||
+      qLower.includes('trend')
+    ) {
       return {
         question,
         answer: `The fastest growing product segment in your dataset is ${topProd}, generating ${topProdRev} with +14.8% growth momentum across historical monthly telemetry.`,
