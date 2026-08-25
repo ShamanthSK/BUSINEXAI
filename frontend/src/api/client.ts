@@ -155,8 +155,21 @@ function processUploadedFileContent(csvText: string, filename: string): DynamicT
       regMap.set(rg, (regMap.get(rg) || 0) + rev);
     }
     if (dateCol && r[dateCol]) {
-      const dStr = String(r[dateCol]).substring(0, 7); // YYYY-MM
-      dateMap.set(dStr, (dateMap.get(dStr) || 0) + rev);
+      let rawDate = String(r[dateCol]).trim();
+      let dKey = rawDate;
+      const parts = rawDate.split(/[\/\-\.]/);
+      if (parts.length === 3) {
+        if (parts[0].length === 4) {
+          dKey = `${parts[0]}-${parts[1].padStart(2, '0')}`;
+        } else if (parts[2].length === 4) {
+          dKey = `${parts[2]}-${parts[0].padStart(2, '0')}`;
+        } else if (parts[2].length === 2) {
+          dKey = `20${parts[2]}-${parts[0].padStart(2, '0')}`;
+        }
+      } else {
+        dKey = rawDate.substring(0, 7);
+      }
+      dateMap.set(dKey, (dateMap.get(dKey) || 0) + rev);
     }
   });
 

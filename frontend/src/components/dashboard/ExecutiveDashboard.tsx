@@ -38,6 +38,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
   onNavigateTab,
 }) => {
   const [salesView, setSalesView] = useState<'region' | 'product' | 'category'>('product');
+  const [chartType, setChartType] = useState<'curve' | 'bar'>('curve');
 
   const getSalesChartData = () => {
     switch (salesView) {
@@ -183,7 +184,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Revenue Trajectory Chart (2 Cols) */}
         <div className="lg:col-span-2 p-6 rounded-2xl glass-panel flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
             <div>
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-indigo-400" />
@@ -191,26 +192,65 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
               </h3>
               <p className="text-xs text-slate-400">Historical revenue telemetry over time</p>
             </div>
+
+            {/* Chart Type Selector: Curve Graph vs Bar Graph */}
+            <div className="flex items-center space-x-1.5 glass-panel p-1 rounded-xl">
+              <button
+                onClick={() => setChartType('curve')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                  chartType === 'curve'
+                    ? 'bg-indigo-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <TrendingUp className="w-3.5 h-3.5" />
+                <span>Curve Graph</span>
+              </button>
+              <button
+                onClick={() => setChartType('bar')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                  chartType === 'bar'
+                    ? 'bg-indigo-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <BarChart2 className="w-3.5 h-3.5" />
+                <span>Bar Graph</span>
+              </button>
+            </div>
           </div>
 
           <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={trends.revenue_over_time}>
-                <defs>
-                  <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.6}/>
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} tickLine={false} />
-                <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} tickFormatter={(v) => `₹${(v/1e5).toFixed(0)}L`} />
-                <Tooltip
-                  formatter={(value: any) => [`₹${Number(value).toLocaleString()}`, 'Revenue']}
-                  contentStyle={{ backgroundColor: 'rgba(15,23,42,0.95)', borderColor: 'rgba(99,102,241,0.3)', borderRadius: '8px' }}
-                />
-                <Area type="monotone" dataKey="revenue" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
-              </AreaChart>
+              {chartType === 'curve' ? (
+                <AreaChart data={trends.revenue_over_time}>
+                  <defs>
+                    <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.6}/>
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} tickLine={false} />
+                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} tickFormatter={(v) => `₹${(v/1e5).toFixed(0)}L`} />
+                  <Tooltip
+                    formatter={(value: any) => [`₹${Number(value).toLocaleString()}`, 'Revenue']}
+                    contentStyle={{ backgroundColor: 'rgba(15,23,42,0.95)', borderColor: 'rgba(99,102,241,0.3)', borderRadius: '8px' }}
+                  />
+                  <Area type="monotone" dataKey="revenue" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
+                </AreaChart>
+              ) : (
+                <BarChart data={trends.revenue_over_time}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} tickLine={false} />
+                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} tickFormatter={(v) => `₹${(v/1e5).toFixed(0)}L`} />
+                  <Tooltip
+                    formatter={(value: any) => [`₹${Number(value).toLocaleString()}`, 'Revenue']}
+                    contentStyle={{ backgroundColor: 'rgba(15,23,42,0.95)', borderColor: 'rgba(99,102,241,0.3)', borderRadius: '8px' }}
+                  />
+                  <Bar dataKey="revenue" fill="#6366f1" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              )}
             </ResponsiveContainer>
           </div>
         </div>
