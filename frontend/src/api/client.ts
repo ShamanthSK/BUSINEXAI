@@ -317,62 +317,67 @@ export async function uploadDatasetFile(file: File) {
 }
 
 const MOCK_PROFILE: DataProfile = {
-  total_rows: 730,
-  total_cols: 15,
-  health_score: 96,
+  total_rows: 990,
+  total_cols: 6,
+  health_score: 100,
   missing_cells: 0,
   duplicate_rows: 0,
-  numeric_columns: ['revenue', 'cost', 'units_sold'],
+  numeric_columns: ['revenue', 'cost', 'quantity'],
   categorical_columns: ['product_name', 'category', 'region'],
   date_columns: ['date'],
-  summary_text: '730 records across 15 columns.'
+  summary_text: '990 records across 6 columns (Retail Grocery Dataset).'
 };
 
 const MOCK_KPIS: KPIData = {
-  revenue: { value: 14850000, formatted: '$14.85M', growth: 14.2, margin: 42.1, sparkline: [1.1, 1.2, 1.15, 1.3, 1.45, 1.48] },
-  profit: { value: 6250000, formatted: '$6.25M', growth: 18.5, margin: 42.1, sparkline: [0.4, 0.45, 0.5, 0.55, 0.6, 0.62] },
-  customers: { value: 3420, formatted: '3,420', growth: 8.7, sparkline: [2900, 3050, 3180, 3300, 3420] },
-  aov: { value: 4342, formatted: '$4,342', growth: 5.1, sparkline: [4100, 4150, 4200, 4300, 4342] },
-  churn: { value: 2.8, formatted: '2.8%', growth: -0.4, sparkline: [3.4, 3.2, 3.0, 2.9, 2.8] },
-  orders_count: 3420
+  revenue: { value: 5865, formatted: '₹5,865', growth: 14.8, margin: 38.0, sparkline: [480, 510, 530, 560, 580, 600] },
+  profit: { value: 2229, formatted: '₹2,229', growth: 16.2, margin: 38.0, sparkline: [182, 194, 201, 212, 220, 228] },
+  customers: { value: 990, formatted: '990', growth: 6.4, sparkline: [820, 850, 890, 920, 950, 990] },
+  aov: { value: 6, formatted: '₹6', growth: 2.1, sparkline: [5.8, 5.9, 6.0, 6.1, 6.0] },
+  churn: { value: 2.1, formatted: '2.1%', growth: -0.3, sparkline: [2.8, 2.6, 2.4, 2.2, 2.1] },
+  orders_count: 990
 };
 
 const MOCK_TRENDS: TrendData = {
   revenue_over_time: [
-    { date: '2025-01', revenue: 980000 },
-    { date: '2025-02', revenue: 1050000 },
-    { date: '2025-03', revenue: 1120000 },
-    { date: '2025-04', revenue: 1080000 },
-    { date: '2025-05', revenue: 1250000 },
-    { date: '2025-06', revenue: 1340000 },
-    { date: '2025-07', revenue: 1410000 },
-    { date: '2025-08', revenue: 1485000 },
+    { date: '2024-01', revenue: 280 },
+    { date: '2024-02', revenue: 310 },
+    { date: '2024-03', revenue: 340 },
+    { date: '2024-04', revenue: 320 },
+    { date: '2024-05', revenue: 380 },
+    { date: '2024-06', revenue: 410 },
+    { date: '2024-07', revenue: 430 },
+    { date: '2024-08', revenue: 450 },
+    { date: '2024-09', revenue: 480 },
+    { date: '2024-10', revenue: 510 },
+    { date: '2024-11', revenue: 530 },
+    { date: '2024-12', revenue: 560 },
+    { date: '2025-01', revenue: 580 },
+    { date: '2025-02', revenue: 600 },
   ],
   by_product: [
-    { product: 'BUSINEX Enterprise Suite', revenue: 5800000, share: 39.1 },
-    { product: 'AI Analytics Engine Pro', revenue: 4200000, share: 28.3 },
-    { product: 'Automated ETL Pipeline', revenue: 2500000, share: 16.8 },
-    { product: 'Smart Edge Gateway', revenue: 1500000, share: 10.1 },
-    { product: 'Strategic BI Advisory', revenue: 850000, share: 5.7 }
+    { product: 'Arabica Coffee', revenue: 2450, share: 41.8 },
+    { product: 'White Tea', revenue: 1850, share: 31.5 },
+    { product: 'Banana', revenue: 950, share: 16.2 },
+    { product: 'Herbal Tea', revenue: 950, share: 16.2 },
+    { product: 'Tuna', revenue: 665, share: 11.3 },
+    { product: 'Halibut', revenue: 420, share: 7.2 },
   ],
   by_region: [
-    { region: 'North America', revenue: 5200000, share: 35.0 },
-    { region: 'Europe (EMEA)', revenue: 4100000, share: 27.6 },
-    { region: 'Asia Pacific (APAC)', revenue: 3500000, share: 23.6 },
-    { region: 'Latin America', revenue: 2050000, share: 13.8 }
+    { region: 'North', revenue: 2800, share: 47.7 },
+    { region: 'South', revenue: 1800, share: 30.7 },
+    { region: 'West', revenue: 1265, share: 21.6 }
   ],
   by_category: [
-    { category: 'Enterprise AI', revenue: 6500000 },
-    { category: 'Cloud Services', revenue: 5200000 },
-    { category: 'Advisory Services', revenue: 1950000 },
-    { category: 'Hardware', revenue: 1200000 }
+    { category: 'Beverages', revenue: 3800 },
+    { category: 'Produce', revenue: 1200 },
+    { category: 'Seafood', revenue: 865 }
   ],
   rising_products: [
-    { product: 'AI Analytics Engine Pro', recent: 4200000, prev: 3100000, growth: 35.5 },
-    { product: 'BUSINEX Enterprise Suite', recent: 5800000, prev: 4800000, growth: 20.8 }
+    { product: 'Arabica Coffee', recent: 2450, prev: 1980, growth: 23.7 },
+    { product: 'White Tea', recent: 1850, prev: 1540, growth: 20.1 }
   ],
   declining_products: [
-    { product: 'Legacy Data Server V1', recent: 650000, prev: 980000, growth: -33.6 }
+    { product: 'Halibut', recent: 420, prev: 520, growth: -19.2 }
   ]
 };
 
@@ -381,23 +386,23 @@ const MOCK_INSIGHTS: Insight[] = [
     id: 'ins-101',
     category: 'OPPORTUNITY',
     category_label: 'Expansion Potential',
-    title: 'Strong Growth in Enterprise AI Category (+35.5%)',
-    summary: 'The Enterprise AI segment is outperforming base projections, driven by high demand for AI Analytics Engine Pro.',
+    title: 'Strong Revenue Lead in Beverages Segment (+23.7%)',
+    summary: 'The Beverages category (Arabica Coffee & White Tea) is outperforming base projections, driving 73.3% of total revenue.',
     impact: 'High Positive Impact',
-    impact_value: '+$1.1M Net ARR',
-    evidence: ['AI Analytics Engine revenue grew 35.5% QoQ', 'Average contract size increased by $1,200'],
-    recommendation: 'Reallocate 15% of legacy marketing budget towards AI Analytics campaign in Q4.'
+    impact_value: '+₹4,300 Net Revenue',
+    evidence: ['Arabica Coffee generated ₹2,450 revenue (41.8% share)', 'Beverages category growth velocity +23.7% YoY'],
+    recommendation: 'Reallocate 15% promotional budget towards expanding Arabica Coffee and White Tea distribution.'
   },
   {
     id: 'ins-102',
     category: 'RISK',
     category_label: 'Revenue At Risk',
-    title: 'North Region Legacy Hardware Sales Dip (-28%)',
-    summary: 'Legacy Hardware sales in the North region experienced a sharp drop over the past 3 months due to customer migration.',
+    title: 'West Region Seafood Sales Dip (-19.2%)',
+    summary: 'Seafood sales (Halibut & Tuna) in the West region experienced a slowdown over the past quarter.',
     impact: 'Moderate Deficit',
-    impact_value: '-$330K Revenue',
-    evidence: ['North region hardware unit sales dropped 28%', 'Customer churn risk flagged as High in Midmarket'],
-    recommendation: 'Incentivize Hardware clients to upgrade to BUSINEX Cloud Services with a migration discount.'
+    impact_value: '-₹100 Item Deficit',
+    evidence: ['Halibut sales dropped 19.2% in West territory', 'Cold chain inventory buffer flagged for review'],
+    recommendation: 'Optimize stock buffers and offer bundle discounts for Seafood items in West territory.'
   }
 ];
 
@@ -568,9 +573,9 @@ export async function runWhatIfSim(
     const mkt = params.marketing_change_pct;
     const prc = params.price_change_pct;
     const cnv = params.conversion_change_pct;
-    const baseRev = stored ? stored.kpis.revenue.value : 24800000;
-    const baseProfit = stored ? stored.kpis.profit.value : 7800000;
-    const baseCust = stored ? stored.kpis.orders_count : 12840;
+    const baseRev = stored ? stored.kpis.revenue.value : 5865;
+    const baseProfit = stored ? stored.kpis.profit.value : 2229;
+    const baseCust = stored ? stored.kpis.orders_count : 990;
 
     const volMult = (1 + (mkt / 100) * 0.22) * (1 + (prc / 100) * -1.35) * (1 + (cnv / 100) * 0.85);
     const projRev = baseRev * volMult * (1 + prc / 100);
