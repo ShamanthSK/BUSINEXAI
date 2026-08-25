@@ -908,32 +908,62 @@ export async function fetchExecutiveReport(datasetId: string) {
     if (!res.ok) throw new Error('Failed to fetch executive report');
     return await res.json();
   } catch (err) {
-    if (UPLOADED_TELEMETRY_STORE.has(datasetId)) {
-      const stored = UPLOADED_TELEMETRY_STORE.get(datasetId)!;
-      const topProd = stored.trends.by_product[0]?.product || 'Top Item';
-      const topCat = stored.trends.by_category[0]?.category || 'Top Category';
+    const stored = UPLOADED_TELEMETRY_STORE.get(datasetId);
+    const datasetName = stored ? 'Uploaded Business Dataset' : 'Retail Business — 24 Months Demo';
 
-      return {
-        title: 'Executive Decision Briefing',
-        dataset_name: 'Uploaded Dataset',
-        generated_at: new Date().toISOString(),
-        summary: `BUSINEX executive analysis indicates total revenue velocity of ${stored.kpis.revenue.formatted} across ${stored.kpis.orders_count} records. Top performing segment is ${topProd} (${topCat}).`,
-        key_takeaways: [
-          `Total Gross Revenue: ${stored.kpis.revenue.formatted} across ${stored.kpis.orders_count} orders`,
-          `Top Growth Segment: ${topProd}`,
-          `Gross Profit Margin: ${stored.kpis.revenue.margin}%`
-        ]
-      };
-    }
+    const kpis = stored ? stored.kpis : MOCK_KPIS;
+    const trends = stored ? stored.trends : MOCK_TRENDS;
+    const topProd = trends.by_product[0]?.product || 'Arabica Coffee';
+    const topCat = trends.by_category[0]?.category || 'Beverages';
+    const topReg = trends.by_region[0]?.region || 'North';
+
     return {
       title: 'Executive Decision Briefing',
-      dataset_name: 'Retail Business — 24 Months',
-      generated_at: new Date().toISOString(),
-      summary: 'BUSINEX platform report indicating strong revenue expansion in Enterprise AI (+35.5%) with localized hardware sales risk in North region.',
-      key_takeaways: [
-        'Total Revenue: $14.85M across 3,420 customers',
-        'Top Growth Category: Enterprise AI (+35.5% QoQ)',
-        'Recommended Action: Scale inventory and marketing for BUSINEX Enterprise Suite'
+      dataset_name: datasetName,
+      generated_at: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
+      methodology: 'Empirical Telemetry Analysis • BUSINEX Decision Engine v1.2',
+      executive_summary: {
+        briefing_text: `BUSINEX Executive Briefing for ${datasetName} indicates total gross revenue velocity of ${kpis.revenue.formatted} across ${kpis.orders_count} orders with a ${kpis.profit.margin}% net profit margin. Top growth is led by ${topProd} in the ${topCat} category.`,
+        what_is_going_well: [
+          `Strong revenue performance in ${topProd} (${trends.by_product[0]?.share || 41.8}% revenue share).`,
+          `High category momentum in ${topCat} with ${kpis.profit.margin}% profit margin velocity.`,
+          `Regional leadership in ${topReg} territory generating healthy order volume.`
+        ],
+        what_needs_attention: [
+          `Slower performance in lower volume product lines requires stock buffer optimization.`,
+          `Estimated churn exposure flagged at ${kpis.churn.formatted} across active accounts.`,
+          `Operational cost optimization needed to preserve net profit margin velocity.`
+        ],
+        biggest_opportunity: {
+          title: `Scale ${topProd} Distribution`,
+          impact: `+${kpis.revenue.formatted} Net Growth`,
+          action: `Reallocate 15% marketing budget towards ${topProd} and expanding ${topCat} channels.`
+        },
+        biggest_risk: {
+          title: `Churn Exposure (${kpis.churn.formatted})`,
+          impact: `Potential ${kpis.churn.formatted} Customer Deficit`,
+          action: `Deploy automated customer retention interventions and upgrade incentives.`
+        },
+        recommended_next_action: {
+          action: `Expand marketing budget for ${topProd} while deploying retention workflows for at-risk accounts.`
+        }
+      },
+      kpis,
+      recommendations: [
+        {
+          rank: 1,
+          title: `Scale Distribution for ${topProd}`,
+          impact: `High Positive Impact`,
+          action: `Increase promotional budget and stock buffers for ${topProd} to capture peak demand.`,
+          evidence: `${topProd} generated ${trends.by_product[0]?.share || 41.8}% of total dataset revenue.`
+        },
+        {
+          rank: 2,
+          title: `Deploy Retention Intervention for At-Risk Accounts`,
+          impact: `Risk Mitigation`,
+          action: `Offer upgrade incentives and loyalty discounts to accounts showing early churn signs.`,
+          evidence: `Estimated churn exposure stands at ${kpis.churn.formatted}.`
+        }
       ]
     };
   }
