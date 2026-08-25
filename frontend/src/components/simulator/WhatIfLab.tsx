@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sliders, TrendingUp, DollarSign, Users, Award, RotateCcw } from 'lucide-react';
+import { Sliders, TrendingUp, DollarSign, Users, Award, RotateCcw, Download, FileSpreadsheet } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts';
 import type { WhatIfResponse } from '../../types';
 import { runWhatIfSim } from '../../api/client';
@@ -51,13 +51,53 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({ activeDatasetId, initialPa
     setConversionChange(0.0);
   };
 
+  const handleDownloadReport = () => {
+    if (!simResult) return;
+    const lines = [
+      'BUSINEX AI STRATEGIC WHAT-IF SIMULATION REPORT',
+      `Generated Date,${new Date().toLocaleString()}`,
+      `Dataset ID,${activeDatasetId}`,
+      '',
+      '--- SIMULATED ASSUMPTIONS ---',
+      `Marketing Spend Shift (%),${marketingChange}% (${estMktRupees >= 0 ? '+' : ''}₹${estMktRupees.toLocaleString('en-IN')}/mo)`,
+      `Price Adjustment (%),${priceChange}%`,
+      `Conversion Velocity Change (%),${conversionChange}%`,
+      '',
+      '--- SCENARIO OUTCOME SUMMARY ---',
+      `Baseline Revenue,${simResult.baseline.revenue_formatted}`,
+      `Projected Revenue,${simResult.projected.revenue_formatted} (${simResult.projected.revenue_change_pct >= 0 ? '+' : ''}${simResult.projected.revenue_change_pct}%)`,
+      `Baseline Profit,${simResult.baseline.profit_formatted}`,
+      `Projected Profit,${simResult.projected.profit_formatted} (${simResult.projected.profit_change_pct >= 0 ? '+' : ''}${simResult.projected.profit_change_pct}%)`,
+      `Projected Net Profit Margin,${simResult.projected.profit_margin}%`,
+      `Projected Customers / Accounts,${simResult.projected.customers}`,
+      `Expected Marketing ROI,${simResult.projected.expected_roi}%`,
+      '',
+      '--- MONTHLY TRAJECTORY BREAKDOWN ---',
+      'Month,Baseline Revenue (INR),Simulated Projected Revenue (INR),Revenue Delta (INR)'
+    ];
+
+    simResult.chart_data.forEach((row: any) => {
+      const delta = row.projected_revenue - row.baseline_revenue;
+      lines.push(`${row.month},${row.baseline_revenue},${row.projected_revenue},${delta}`);
+    });
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + lines.join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `BUSINEX_WhatIf_Simulation_Report_${activeDatasetId}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Helper for rupee spend estimation
   const estMktRupees = (marketingChange / 100) * 1000000;
 
   return (
     <div className="space-y-8 p-6">
       {/* Title */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
             <Sliders className="w-7 h-7 text-indigo-400" />
@@ -68,13 +108,23 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({ activeDatasetId, initialPa
           </p>
         </div>
 
-        <button
-          onClick={handleReset}
-          className="px-3.5 py-1.5 rounded-xl glass-panel hover:bg-slate-800 text-xs text-slate-300 font-semibold transition-all flex items-center gap-2"
-        >
-          <RotateCcw className="w-3.5 h-3.5" />
-          <span>Reset Parameters</span>
-        </button>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={handleDownloadReport}
+            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md shadow-emerald-600/30 transition-all flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            <span>Download Simulation Report (CSV)</span>
+          </button>
+
+          <button
+            onClick={handleReset}
+            className="px-3.5 py-2 rounded-xl glass-panel hover:bg-slate-800 text-xs text-slate-300 font-semibold transition-all flex items-center gap-2"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Reset</span>
+          </button>
+        </div>
       </div>
 
       {/* Sliders Control Panel & Output Grid */}

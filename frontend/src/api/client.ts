@@ -633,6 +633,9 @@ export async function askDataQuestion(datasetId: string, question: string): Prom
       .replace(/custmer|custmr/g, 'customer');
 
     const stored = UPLOADED_TELEMETRY_STORE.get(datasetId);
+    const datasetPrefix = stored
+      ? `Based on your uploaded dataset`
+      : `Based on the pre-loaded Retail Demo Dataset (upload your CSV/XLSX file above to analyze your custom data)`;
 
     const prods = stored ? stored.trends.by_product : [
       { product: 'Arabica Coffee', revenue: 2450, share: 41.8 },
@@ -674,6 +677,29 @@ export async function askDataQuestion(datasetId: string, question: string): Prom
       if (val >= 1000) return `₹${Math.round(val).toLocaleString('en-IN')}`;
       return `₹${val.toFixed(0)}`;
     };
+
+    // 0. Greeting handler (e.g. "hi", "hello", "hey")
+    if (/^(hi|hello|hey|greetings|start|who are you|help)\b/i.test(rawQ.trim())) {
+      const greetingMsg = stored
+        ? `Hello! I am your BUSINEX AI copilot. I am ready to analyze your uploaded dataset. Ask me anything about revenue breakdown, top products, worst performing items, or monthly expenses!`
+        : `Hello! Welcome to BUSINEX AI Enterprise Copilot. 📊 You are currently exploring the pre-loaded Retail Demo Dataset (upload your custom CSV/XLSX dataset using the "Upload Data" button above to analyze your custom business numbers!). Ask me any business question to get started!`;
+
+      return {
+        question,
+        answer: greetingMsg,
+        chart: {
+          type: 'bar',
+          title: 'Top Items in Current Dataset',
+          x_key: 'category',
+          y_key: 'revenue',
+          data: prods.slice(0, 5).map(p => ({ category: p.product, revenue: p.revenue }))
+        },
+        metrics_highlight: [
+          { label: 'Current Dataset', value: stored ? 'Custom Upload' : 'Retail Demo (Pre-loaded)' },
+          { label: 'Top Item', value: topProd }
+        ]
+      };
+    }
 
     // 1. Monthly Expenses & Income / Revenue vs Expense
     if (
@@ -801,7 +827,7 @@ export async function askDataQuestion(datasetId: string, question: string): Prom
     // Default / Highest grossing / General
     return {
       question,
-      answer: `Based on your uploaded dataset, total gross revenue is ${totRevFormatted} across ${orderCount} records. The highest performing product is ${topProd} generating ${topProdRev}.`,
+      answer: `${datasetPrefix}, total gross revenue is ${totRevFormatted} across ${orderCount} records. The highest performing product is ${topProd} generating ${topProdRev}.`,
       chart: {
         type: 'bar',
         title: 'Top Items / Categories in Dataset',
