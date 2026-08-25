@@ -853,15 +853,15 @@ export async function fetchDatasetProfile(datasetId: string): Promise<DataProfil
       return UPLOADED_TELEMETRY_STORE.get(datasetId)!.profile;
     }
     return {
-      total_rows: 1420,
-      total_cols: 12,
-      health_score: 96,
+      total_rows: 990,
+      total_cols: 6,
+      health_score: 100,
       missing_cells: 0,
       duplicate_rows: 0,
-      numeric_columns: ['revenue', 'cost', 'units_sold', 'marketing_spend'],
-      categorical_columns: ['product_name', 'category', 'region', 'customer_segment'],
+      numeric_columns: ['revenue', 'cost', 'quantity'],
+      categorical_columns: ['product_name', 'category', 'region'],
       date_columns: ['date'],
-      summary_text: '1,420 records across 12 columns.'
+      summary_text: '990 records across 6 columns (Retail Grocery Dataset).'
     };
   }
 }
@@ -891,19 +891,29 @@ export async function fetchDatasetExplorer(datasetId: string, page = 1, search =
         rows: paged
       };
     }
+
+    const demoRows = [
+      { date: '2024-01-15', product_name: 'Arabica Coffee', category: 'Beverages', region: 'North', revenue: 2450.0, cost: 1519.0 },
+      { date: '2024-02-10', product_name: 'White Tea', category: 'Beverages', region: 'South', revenue: 1850.0, cost: 1147.0 },
+      { date: '2024-03-05', product_name: 'Banana', category: 'Produce', region: 'North', revenue: 950.0, cost: 589.0 },
+      { date: '2024-04-12', product_name: 'Herbal Tea', category: 'Beverages', region: 'West', revenue: 950.0, cost: 589.0 },
+      { date: '2024-05-18', product_name: 'Tuna', category: 'Seafood', region: 'South', revenue: 665.0, cost: 412.0 },
+      { date: '2024-06-22', product_name: 'Halibut', category: 'Seafood', region: 'West', revenue: 420.0, cost: 260.0 },
+    ];
+
+    let filtered = demoRows;
+    if (search) {
+      filtered = demoRows.filter(r => Object.values(r).some(v => String(v).toLowerCase().includes(search.toLowerCase())));
+    }
+
     return {
       dataset_id: datasetId,
-      page,
+      page: 1,
       limit: 50,
-      total_rows: 5,
+      total_rows: 990,
       total_pages: 1,
       columns: ['date', 'product_name', 'category', 'region', 'revenue', 'cost'],
-      rows: [
-        { date: '2026-08-01', product_name: 'BUSINEX Enterprise Suite', category: 'Cloud Services', region: 'North', revenue: 4500.0, cost: 1200.0 },
-        { date: '2026-08-01', product_name: 'AI Analytics Engine Pro', category: 'Enterprise AI', region: 'APAC', revenue: 8200.0, cost: 2100.0 },
-        { date: '2026-08-02', product_name: 'Smart Edge Gateway', category: 'Hardware', region: 'EMEA', revenue: 1800.0, cost: 950.0 },
-        { date: '2026-08-03', product_name: 'Strategic BI Advisory', category: 'Advisory', region: 'South', revenue: 12000.0, cost: 4500.0 },
-      ]
+      rows: filtered
     };
   }
 }
