@@ -1,3 +1,4 @@
+import ExcelJS from 'exceljs';
 import type {
   KPIData,
   TrendData,
@@ -1073,40 +1074,84 @@ export async function downloadWhatIfExcel(
   }
 }
 
-function generateFallbackExecutiveReportExcel(datasetId: string) {
-  const html = `
-  <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-  <head>
-  <meta charset="utf-8"/>
-  <style>
-    body { font-family: Calibri, sans-serif; }
-    .title { background-color: #1E293B; color: #FFFFFF; font-size: 16px; font-weight: bold; text-align: center; height: 38px; }
-    .section { background-color: #334155; color: #FFFFFF; font-size: 12px; font-weight: bold; padding: 6px; }
-    .header { background-color: #F8FAFC; font-weight: bold; border: 1px solid #CBD5E1; }
-    .cell { border: 1px solid #CBD5E1; padding: 6px; }
-  </style>
-  </head>
-  <body>
-  <table>
-    <tr><td colspan="5" class="title">STRATOS AI PLATFORM — EXECUTIVE STRATEGIC DECISION BRIEFING</td></tr>
-    <tr><td colspan="5" style="text-align:center; font-size:9px; color:#64748B;">Dataset ID: ${datasetId} | Confidential Executive Briefing | Generated: 2026-08-26</td></tr>
-    <tr><td colspan="5"></td></tr>
-    <tr><td colspan="5" class="section">1. EXECUTIVE SUMMARY</td></tr>
-    <tr><td colspan="5" class="cell">STRATOS AI telemetry shows gross revenue at ₹45,141 (+14.8% YoY) with a profit margin of 22.0%. Primary growth drivers are concentrated in Cloud Services, while immediate risk mitigation is required for North region hardware sales contraction.</td></tr>
-    <tr><td colspan="5"></td></tr>
-    <tr><td colspan="5" class="section">2. FINANCIAL & PERFORMANCE KPI TELEMETRY</td></tr>
-    <tr class="header">
-      <td class="cell">Metric</td><td class="cell">Current Value</td><td class="cell">Margin / Rate</td><td class="cell">Growth Trend</td><td class="cell">Status</td>
-    </tr>
-    <tr><td class="cell">Gross Revenue</td><td class="cell">₹45,141</td><td class="cell">-</td><td class="cell">+14.8% YoY</td><td class="cell">STRONG</td></tr>
-    <tr><td class="cell">Net Profit</td><td class="cell">₹9,931</td><td class="cell">22.0% Margin</td><td class="cell">+4.2% YoY</td><td class="cell">OPTIMAL</td></tr>
-    <tr><td class="cell">Active Accounts</td><td class="cell">1,420</td><td class="cell">-</td><td class="cell">+8.1% YoY</td><td class="cell">GROWING</td></tr>
-    <tr><td class="cell">Churn Exposure</td><td class="cell">2.1%</td><td class="cell">2.1% Rate</td><td class="cell">High Attention</td><td class="cell">ALERT</td></tr>
-  </table>
-  </body>
-  </html>
-  `;
-  const blob = new Blob([html], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+async function generateFallbackExecutiveReportExcel(datasetId: string) {
+  const workbook = new ExcelJS.Workbook();
+  const ws = workbook.addWorksheet('Executive Briefing');
+
+  // Title Banner
+  ws.mergeCells('A1:E1');
+  const titleCell = ws.getCell('A1');
+  titleCell.value = 'STRATOS AI PLATFORM — EXECUTIVE STRATEGIC DECISION BRIEFING';
+  titleCell.font = { name: 'Calibri', size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
+  titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } };
+  titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+  ws.getRow(1).height = 38;
+
+  // Subtitle
+  ws.mergeCells('A2:E2');
+  const subCell = ws.getCell('A2');
+  subCell.value = `Dataset ID: ${datasetId} | Confidential Executive Briefing | Generated: 2026-08-26`;
+  subCell.font = { name: 'Calibri', size: 9, italic: true, color: { argb: 'FF64748B' } };
+  subCell.alignment = { horizontal: 'center' };
+
+  // Section 1
+  ws.mergeCells('A4:E4');
+  const s1 = ws.getCell('A4');
+  s1.value = '1. EXECUTIVE SUMMARY';
+  s1.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+  s1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF334155' } };
+  s1.alignment = { indent: 1, vertical: 'middle' };
+
+  ws.mergeCells('A5:E5');
+  const sumCell = ws.getCell('A5');
+  sumCell.value = 'STRATOS AI telemetry shows gross revenue at ₹45,141 (+14.8% YoY) with a profit margin of 22.0%. Primary growth drivers are concentrated in Cloud Services, while immediate risk mitigation is required for North region hardware sales contraction.';
+  sumCell.font = { name: 'Calibri', size: 11 };
+  sumCell.alignment = { wrapText: true, vertical: 'top' };
+  ws.getRow(5).height = 45;
+
+  // Section 2
+  ws.mergeCells('A7:E7');
+  const s2 = ws.getCell('A7');
+  s2.value = '2. FINANCIAL & PERFORMANCE KPI TELEMETRY';
+  s2.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+  s2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF334155' } };
+  s2.alignment = { indent: 1, vertical: 'middle' };
+
+  const headers = ['Metric', 'Current Value', 'Margin / Rate', 'Growth Trend', 'Status'];
+  const hRow = ws.getRow(8);
+  headers.forEach((h, idx) => {
+    const cell = hRow.getCell(idx + 1);
+    cell.value = h;
+    cell.font = { name: 'Calibri', size: 11, bold: true };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+    cell.border = { top: { style: 'thin', color: { argb: 'FFCBD5E1' } }, bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } }, left: { style: 'thin', color: { argb: 'FFCBD5E1' } }, right: { style: 'thin', color: { argb: 'FFCBD5E1' } } };
+  });
+
+  const kpis = [
+    ['Gross Revenue', '₹45,141', '-', '+14.8% YoY', 'STRONG'],
+    ['Net Profit', '₹9,931', '22.0% Margin', '+4.2% YoY', 'OPTIMAL'],
+    ['Active Accounts', '1,420', '-', '+8.1% YoY', 'GROWING'],
+    ['Churn Exposure', '2.1%', '2.1% Rate', 'High Attention', 'ALERT']
+  ];
+
+  kpis.forEach((rowVals, rIdx) => {
+    const row = ws.getRow(9 + rIdx);
+    rowVals.forEach((val, cIdx) => {
+      const cell = row.getCell(cIdx + 1);
+      cell.value = val;
+      cell.font = { name: 'Calibri', size: 11 };
+      cell.border = { top: { style: 'thin', color: { argb: 'FFCBD5E1' } }, bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } }, left: { style: 'thin', color: { argb: 'FFCBD5E1' } }, right: { style: 'thin', color: { argb: 'FFCBD5E1' } } };
+    });
+  });
+
+  ws.getColumn(1).width = 25;
+  ws.getColumn(2).width = 20;
+  ws.getColumn(3).width = 20;
+  ws.getColumn(4).width = 20;
+  ws.getColumn(5).width = 18;
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
@@ -1117,79 +1162,119 @@ function generateFallbackExecutiveReportExcel(datasetId: string) {
   window.URL.revokeObjectURL(url);
 }
 
-function generateFallbackWhatIfExcel(datasetId: string, params: { marketing_change_pct: number; price_change_pct: number; conversion_change_pct: number }) {
-  const mShift = params.marketing_change_pct;
-  const pAdj = params.price_change_pct;
-  const cVel = params.conversion_change_pct;
+async function generateFallbackWhatIfExcel(datasetId: string, params: { marketing_change_pct: number; price_change_pct: number; conversion_change_pct: number }) {
+  const workbook = new ExcelJS.Workbook();
+  const ws = workbook.addWorksheet('What-If Scenario Simulation');
 
-  const html = `
-  <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-  <head>
-  <meta charset="utf-8"/>
-  <style>
-    body { font-family: Calibri, sans-serif; }
-    .title { background-color: #1E293B; color: #FFFFFF; font-size: 16px; font-weight: bold; text-align: center; height: 38px; }
-    .section { background-color: #334155; color: #FFFFFF; font-size: 12px; font-weight: bold; padding: 6px; }
-    .header { background-color: #F8FAFC; font-weight: bold; border: 1px solid #CBD5E1; }
-    .cell { border: 1px solid #CBD5E1; padding: 6px; }
-  </style>
-  </head>
-  <body>
-  <table>
-    <tr><td colspan="4" class="title">STRATOS AI — STRATEGIC WHAT-IF SCENARIO REPORT</td></tr>
-    <tr><td colspan="4"></td></tr>
-    <tr><td colspan="4" class="section">1. SIMULATED ASSUMPTIONS</td></tr>
-    <tr><td class="cell"><b>Marketing Spend Shift (%)</b></td><td class="cell" colspan="3">${mShift}%</td></tr>
-    <tr><td class="cell"><b>Price Adjustment (%)</b></td><td class="cell" colspan="3">${pAdj}%</td></tr>
-    <tr><td class="cell"><b>Conversion Velocity Change (%)</b></td><td class="cell" colspan="3">${cVel}%</td></tr>
-    <tr><td colspan="4"></td></tr>
-    <tr><td colspan="4" class="section">2. SCENARIO OUTCOME SUMMARY</td></tr>
-    <tr><td class="cell"><b>Baseline Revenue</b></td><td class="cell" colspan="3">₹58,336</td></tr>
-    <tr><td class="cell"><b>Projected Revenue</b></td><td class="cell" colspan="3">₹${Math.round(58336 * (1 + (mShift*0.4 + pAdj*0.6 + cVel*0.5)/100)).toLocaleString()} (${mShift >= 0 ? '+' : ''}${(mShift*0.4 + pAdj*0.6 + cVel*0.5).toFixed(1)}%)</td></tr>
-    <tr><td class="cell"><b>Baseline Profit</b></td><td class="cell" colspan="3">₹12,834</td></tr>
-    <tr><td class="cell"><b>Projected Profit</b></td><td class="cell" colspan="3">₹${Math.round(12834 * (1 + (mShift*0.4 + pAdj*0.6 + cVel*0.5)/100)).toLocaleString()} (${mShift >= 0 ? '+' : ''}${(mShift*0.4 + pAdj*0.6 + cVel*0.5).toFixed(1)}%)</td></tr>
-    <tr><td class="cell"><b>Projected Net Profit Margin</b></td><td class="cell" colspan="3">22.0%</td></tr>
-    <tr><td class="cell"><b>Projected Active Accounts</b></td><td class="cell" colspan="3">1,420</td></tr>
-    <tr><td class="cell"><b>Expected Marketing ROI</b></td><td class="cell" colspan="3">${(mShift * 0.35).toFixed(1)}%</td></tr>
-    <tr><td colspan="4"></td></tr>
-    <tr><td colspan="4" class="section">3. MONTHLY TRAJECTORY BREAKDOWN</td></tr>
-    <tr class="header">
-      <td class="cell">Month</td>
-      <td class="cell">Baseline Revenue (₹)</td>
-      <td class="cell">Projected Revenue (₹)</td>
-      <td class="cell">Revenue Delta (₹)</td>
-    </tr>
-    ${[
-      { m: '2024-02', b: 4861.33 },
-      { m: '2024-03', b: 5141.01 },
-      { m: '2024-04', b: 5352.21 },
-      { m: '2024-05', b: 5443.23 },
-      { m: '2024-06', b: 5391.78 },
-      { m: '2024-07', b: 5210.46 },
-      { m: '2024-08', b: 4943.66 },
-      { m: '2024-09', b: 4656.70 },
-      { m: '2024-10', b: 4419.85 },
-      { m: '2024-11', b: 4291.08 },
-      { m: '2024-12', b: 4301.94 },
-      { m: '2025-01', b: 4449.75 }
-    ].map(item => {
-      const mult = 1 + (mShift*0.4 + pAdj*0.6 + cVel*0.5)/100;
-      const proj = Number((item.b * mult).toFixed(2));
-      const delta = Number((proj - item.b).toFixed(2));
-      return `
-        <tr>
-          <td class="cell">${item.m}</td>
-          <td class="cell">${item.b.toFixed(2)}</td>
-          <td class="cell">${proj.toFixed(2)}</td>
-          <td class="cell">${delta.toFixed(2)}</td>
-        </tr>
-      `;
-    }).join('')}
-  </table>
-  </body>
-  </html>
-  `;
-  const blob = new Blob([html], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  // Title Banner
+  ws.mergeCells('A1:F1');
+  const titleCell = ws.getCell('A1');
+  titleCell.value = 'STRATOS AI — STRATEGIC WHAT-IF SCENARIO REPORT';
+  titleCell.font = { name: 'Calibri', size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
+  titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } };
+  titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+  ws.getRow(1).height = 38;
+
+  // Section 1
+  ws.mergeCells('A3:F3');
+  const s1 = ws.getCell('A3');
+  s1.value = '1. SIMULATED ASSUMPTIONS';
+  s1.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+  s1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF334155' } };
+  s1.alignment = { indent: 1, vertical: 'middle' };
+
+  const assumptions = [
+    ['Marketing Spend Shift (%)', `${params.marketing_change_pct}%`],
+    ['Price Adjustment (%)', `${params.price_change_pct}%`],
+    ['Conversion Velocity Change (%)', `${params.conversion_change_pct}%`]
+  ];
+  assumptions.forEach(([k, v], idx) => {
+    const row = ws.getRow(4 + idx);
+    row.getCell(1).value = k;
+    row.getCell(2).value = v;
+    row.getCell(1).font = { name: 'Calibri', size: 11, bold: true };
+    row.getCell(2).font = { name: 'Calibri', size: 11 };
+    row.getCell(1).border = { top: { style: 'thin', color: { argb: 'FFCBD5E1' } }, bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } }, left: { style: 'thin', color: { argb: 'FFCBD5E1' } }, right: { style: 'thin', color: { argb: 'FFCBD5E1' } } };
+    row.getCell(2).border = { top: { style: 'thin', color: { argb: 'FFCBD5E1' } }, bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } }, left: { style: 'thin', color: { argb: 'FFCBD5E1' } }, right: { style: 'thin', color: { argb: 'FFCBD5E1' } } };
+  });
+
+  // Section 2
+  ws.mergeCells('A8:F8');
+  const s2 = ws.getCell('A8');
+  s2.value = '2. SCENARIO OUTCOME SUMMARY';
+  s2.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+  s2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF334155' } };
+  s2.alignment = { indent: 1, vertical: 'middle' };
+
+  const mult = 1 + (params.marketing_change_pct * 0.4 + params.price_change_pct * 0.6 + params.conversion_change_pct * 0.5) / 100;
+  const projRev = Math.round(58336 * mult);
+  const projProf = Math.round(12834 * mult);
+  const revPct = ((mult - 1) * 100).toFixed(1);
+
+  const summary = [
+    ['Baseline Revenue', '₹58,336'],
+    ['Projected Revenue', `₹${projRev.toLocaleString()} (${mult >= 1 ? '+' : ''}${revPct}%)`],
+    ['Baseline Profit', '₹12,834'],
+    ['Projected Profit', `₹${projProf.toLocaleString()} (${mult >= 1 ? '+' : ''}${revPct}%)`],
+    ['Projected Net Profit Margin', '22.0%'],
+    ['Projected Active Accounts', '1,420'],
+    ['Expected Marketing ROI', `${(params.marketing_change_pct * 0.35).toFixed(1)}%`]
+  ];
+
+  summary.forEach(([k, v], idx) => {
+    const row = ws.getRow(9 + idx);
+    row.getCell(1).value = k;
+    row.getCell(2).value = v;
+    row.getCell(1).font = { name: 'Calibri', size: 11, bold: true };
+    row.getCell(2).font = { name: 'Calibri', size: 11 };
+    row.getCell(1).border = { top: { style: 'thin', color: { argb: 'FFCBD5E1' } }, bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } }, left: { style: 'thin', color: { argb: 'FFCBD5E1' } }, right: { style: 'thin', color: { argb: 'FFCBD5E1' } } };
+    row.getCell(2).border = { top: { style: 'thin', color: { argb: 'FFCBD5E1' } }, bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } }, left: { style: 'thin', color: { argb: 'FFCBD5E1' } }, right: { style: 'thin', color: { argb: 'FFCBD5E1' } } };
+  });
+
+  // Section 3
+  ws.mergeCells('A17:F17');
+  const s3 = ws.getCell('A17');
+  s3.value = '3. MONTHLY TRAJECTORY BREAKDOWN';
+  s3.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+  s3.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF334155' } };
+  s3.alignment = { indent: 1, vertical: 'middle' };
+
+  const headers = ['Month', 'Baseline Revenue (₹)', 'Projected Revenue (₹)', 'Revenue Delta (₹)'];
+  const hRow = ws.getRow(18);
+  headers.forEach((h, cIdx) => {
+    const cell = hRow.getCell(cIdx + 1);
+    cell.value = h;
+    cell.font = { name: 'Calibri', size: 11, bold: true };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+    cell.border = { top: { style: 'thin', color: { argb: 'FFCBD5E1' } }, bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } }, left: { style: 'thin', color: { argb: 'FFCBD5E1' } }, right: { style: 'thin', color: { argb: 'FFCBD5E1' } } };
+  });
+
+  const trajectory = [
+    { m: '2024-02', b: 4861.33 }, { m: '2024-03', b: 5141.01 }, { m: '2024-04', b: 5352.21 },
+    { m: '2024-05', b: 5443.23 }, { m: '2024-06', b: 5391.78 }, { m: '2024-07', b: 5210.46 },
+    { m: '2024-08', b: 4943.66 }, { m: '2024-09', b: 4656.70 }, { m: '2024-10', b: 4419.85 },
+    { m: '2024-11', b: 4291.08 }, { m: '2024-12', b: 4301.94 }, { m: '2025-01', b: 4449.75 }
+  ];
+
+  trajectory.forEach((item, idx) => {
+    const proj = Number((item.b * mult).toFixed(2));
+    const delta = Number((proj - item.b).toFixed(2));
+    const row = ws.getRow(19 + idx);
+    [item.m, item.b, proj, delta].forEach((val, cIdx) => {
+      const cell = row.getCell(cIdx + 1);
+      cell.value = val;
+      cell.font = { name: 'Calibri', size: 11 };
+      cell.border = { top: { style: 'thin', color: { argb: 'FFCBD5E1' } }, bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } }, left: { style: 'thin', color: { argb: 'FFCBD5E1' } }, right: { style: 'thin', color: { argb: 'FFCBD5E1' } } };
+    });
+  });
+
+  ws.getColumn(1).width = 30;
+  ws.getColumn(2).width = 25;
+  ws.getColumn(3).width = 25;
+  ws.getColumn(4).width = 22;
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
