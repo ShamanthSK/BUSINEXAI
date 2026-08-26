@@ -120,6 +120,7 @@ export function App() {
                   <ExecutiveDashboard
                     kpis={kpis}
                     trends={trends}
+                    activeDatasetId={activeDatasetId}
                     onOpenWhyModal={() => setActiveTab('insights')}
                     onNavigateTab={setActiveTab}
                   />

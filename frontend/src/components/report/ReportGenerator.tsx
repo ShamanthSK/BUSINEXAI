@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Download, Printer, ShieldCheck, Sparkles, CheckCircle2 } from 'lucide-react';
-import { fetchExecutiveReport, fetchDatasetExplorer } from '../../api/client';
+import { FileText, Printer, ShieldCheck, Sparkles, CheckCircle2, FileSpreadsheet } from 'lucide-react';
+import { fetchExecutiveReport, fetchDatasetExplorer, downloadDatasetExcel } from '../../api/client';
 
 interface ReportGeneratorProps {
   activeDatasetId: string;
@@ -9,6 +9,7 @@ interface ReportGeneratorProps {
 
 export const ReportGenerator: React.FC<ReportGeneratorProps> = ({ activeDatasetId }) => {
   const [report, setReport] = useState<any>(null);
+  const [isExportingExcel, setIsExportingExcel] = useState(false);
 
   useEffect(() => {
     fetchExecutiveReport(activeDatasetId).then(setReport).catch(console.error);
@@ -18,22 +19,12 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({ activeDatasetI
     window.print();
   };
 
-  const handleExportCSV = async () => {
+  const handleExportExcel = async () => {
+    setIsExportingExcel(true);
     try {
-      const data = await fetchDatasetExplorer(activeDatasetId, 1, '');
-      const rows = data.rows;
-      if (!rows || rows.length === 0) return;
-      const headers = Object.keys(rows[0]).join(',');
-      const csvContent = 'data:text/csv;charset=utf-8,' + [headers, ...rows.map((r: any) => Object.values(r).join(','))].join('\n');
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement('a');
-      link.setAttribute('href', encodedUri);
-      link.setAttribute('download', `STRATOS_Report_${activeDatasetId}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (err) {
-      console.error('Failed to export CSV', err);
+      await downloadDatasetExcel(activeDatasetId);
+    } finally {
+      setIsExportingExcel(false);
     }
   };
 
@@ -48,16 +39,17 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({ activeDatasetI
             <FileText className="w-6 h-6 text-indigo-400" />
             <span>Executive Strategic Decision Report</span>
           </h2>
-          <p className="text-xs text-slate-400">Formal PDF-ready executive decision briefing.</p>
+          <p className="text-xs text-slate-400">Formal PDF-ready executive decision briefing with embedded Excel charts export.</p>
         </div>
 
         <div className="flex items-center space-x-3">
           <button
-            onClick={handleExportCSV}
-            className="px-3.5 py-1.5 rounded-xl glass-panel hover:bg-slate-800 text-xs text-slate-300 font-semibold transition-all flex items-center gap-2"
+            onClick={handleExportExcel}
+            disabled={isExportingExcel}
+            className="px-3.5 py-1.5 rounded-xl bg-emerald-600/90 hover:bg-emerald-500 text-xs text-white font-semibold shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2 disabled:opacity-50"
           >
-            <Download className="w-3.5 h-3.5" />
-            <span>Export CSV</span>
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-200" />
+            <span>{isExportingExcel ? 'Generating Excel...' : 'Export Excel (.xlsx)'}</span>
           </button>
 
           <button
@@ -69,6 +61,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({ activeDatasetI
           </button>
         </div>
       </div>
+
 
       {/* Printable Styled Report Document */}
       <div className="p-10 rounded-3xl glass-panel-glow border-indigo-500/40 text-slate-200 space-y-8 bg-slate-950/90 shadow-2xl">

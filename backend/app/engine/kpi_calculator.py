@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from app.engine.formatters import format_currency
 
 def calculate_kpis(df: pd.DataFrame) -> dict:
     # Ensure date parsing
@@ -66,13 +67,13 @@ def calculate_kpis(df: pd.DataFrame) -> dict:
     return {
         "revenue": {
             "value": total_revenue,
-            "formatted": f"₹{total_revenue / 1e7:.2f} Cr" if total_revenue >= 1e7 else f"₹{total_revenue:,.0f}",
+            "formatted": format_currency(total_revenue),
             "growth": growth_rate,
             "sparkline": rev_sparkline
         },
         "profit": {
             "value": total_profit,
-            "formatted": f"₹{total_profit / 1e7:.2f} Cr" if total_profit >= 1e7 else f"₹{total_profit:,.0f}",
+            "formatted": format_currency(total_profit),
             "margin": profit_margin,
             "sparkline": [v * (profit_margin / 100.0) for v in rev_sparkline[-8:]]
         },

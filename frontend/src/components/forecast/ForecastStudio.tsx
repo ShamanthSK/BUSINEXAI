@@ -4,6 +4,7 @@ import { TrendingUp, Calendar, ShieldCheck, Cpu } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import type { ForecastResponse } from '../../types';
 import { fetchForecast } from '../../api/client';
+import { formatCompactCurrency } from '../../utils/formatters';
 
 interface ForecastStudioProps {
   activeDatasetId: string;
@@ -131,7 +132,7 @@ export const ForecastStudio: React.FC<ForecastStudioProps> = ({ activeDatasetId 
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} tickLine={false} />
-                <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} tickFormatter={(v) => `₹${(v/1e5).toFixed(0)}L`} />
+                <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} tickFormatter={formatCompactCurrency} />
                 <Tooltip formatter={(val: any) => val ? `₹${Number(val).toLocaleString()}` : '-'} />
                 <Area type="monotone" name="Upper Confidence" dataKey="upper_bound" stroke="none" fill="#10b981" fillOpacity={0.1} />
                 <Area type="monotone" name="Actual Revenue" dataKey="actual" stroke="#6366f1" strokeWidth={3} fill="url(#colorAct)" />

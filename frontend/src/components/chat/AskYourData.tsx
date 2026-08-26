@@ -4,6 +4,7 @@ import { MessageSquare, Send, Sparkles, Bot, User, BarChart2, PieChart, Trending
 import { ResponsiveContainer, BarChart, Bar, LineChart, Line, PieChart as RePieChart, Pie, Cell, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import type { NLQueryResponse } from '../../types';
 import { askDataQuestion } from '../../api/client';
+import { formatCompactCurrency } from '../../utils/formatters';
 
 interface AskYourDataProps {
   activeDatasetId: string;
@@ -75,7 +76,7 @@ export const AskYourData: React.FC<AskYourDataProps> = ({ activeDatasetId }) => 
             <BarChart data={payload.data}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
               <XAxis dataKey={payload.x_key} stroke="#94a3b8" fontSize={11} tickLine={false} />
-              <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} tickFormatter={(v) => `₹${(v/1e5).toFixed(0)}L`} />
+              <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} tickFormatter={formatCompactCurrency} />
               <Tooltip formatter={(val: any) => `₹${Number(val).toLocaleString()}`} />
               <Bar dataKey={payload.y_key} fill="#6366f1" radius={[4, 4, 0, 0]} />
             </BarChart>
@@ -90,7 +91,7 @@ export const AskYourData: React.FC<AskYourDataProps> = ({ activeDatasetId }) => 
             <LineChart data={payload.data}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
               <XAxis dataKey={payload.x_key} stroke="#94a3b8" fontSize={11} tickLine={false} />
-              <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} tickFormatter={(v) => `₹${(v/1e5).toFixed(0)}L`} />
+              <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} tickFormatter={formatCompactCurrency} />
               <Tooltip formatter={(val: any) => `₹${Number(val).toLocaleString()}`} />
               <Line type="monotone" dataKey={payload.y_key} stroke="#10b981" strokeWidth={3} dot={{ r: 4 }} />
             </LineChart>
@@ -117,7 +118,7 @@ export const AskYourData: React.FC<AskYourDataProps> = ({ activeDatasetId }) => 
               <div key={idx} className="flex items-center space-x-2">
                 <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
                 <span className="text-slate-300">{entry[payload.x_key]}:</span>
-                <span className="font-bold text-white">₹{(entry[payload.y_key]/1e5).toFixed(1)}L</span>
+                <span className="font-bold text-white">{formatCompactCurrency(entry[payload.y_key])}</span>
               </div>
             ))}
           </div>

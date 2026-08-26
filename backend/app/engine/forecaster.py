@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from app.engine.formatters import format_currency
 
 def generate_forecast(df: pd.DataFrame, horizon_days: int = 90) -> dict:
     date_col = next((c for c in df.columns if "date" in c.lower() or "time" in c.lower()), None)
@@ -85,7 +86,7 @@ def generate_forecast(df: pd.DataFrame, horizon_days: int = 90) -> dict:
         "combined_series": historical_points[-16:] + forecast_points,
         "metrics": {
             "projected_revenue": round(total_projected_revenue, 2),
-            "projected_revenue_formatted": f"₹{total_projected_revenue / 1e7:.2f} Cr" if total_projected_revenue >= 1e7 else f"₹{total_projected_revenue:,.0f}",
+            "projected_revenue_formatted": format_currency(total_projected_revenue),
             "projected_growth_rate": projected_growth,
             "confidence_level": "85% Confidence Interval",
             "model_type": "Linear Trend + Exponential Smoothing Decomposition"
@@ -132,7 +133,7 @@ def _fallback_forecast(horizon_days: int) -> dict:
         "combined_series": hist + fc,
         "metrics": {
             "projected_revenue": total_proj,
-            "projected_revenue_formatted": f"₹{total_proj / 1e7:.2f} Cr" if total_proj >= 1e7 else f"₹{total_proj:,.0f}",
+            "projected_revenue_formatted": format_currency(total_proj),
             "projected_growth_rate": 14.2,
             "confidence_level": "85% Confidence Interval",
             "model_type": "Linear Trend + Exponential Smoothing Decomposition"

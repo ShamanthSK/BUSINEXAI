@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from app.engine.kpi_calculator import calculate_kpis
 from app.engine.trend_analyzer import analyze_trends
+from app.engine.formatters import format_currency
 
 def process_natural_language_query(df: pd.DataFrame, question: str) -> dict:
     q_lower = question.lower()
@@ -41,7 +42,7 @@ def process_natural_language_query(df: pd.DataFrame, question: str) -> dict:
             },
             "metrics_highlight": [
                 {"label": "Top Region", "value": chart_data[0]['region']},
-                {"label": "Lead Revenue", "value": f"₹{chart_data[0]['revenue']/1e7:.2f} Cr"},
+                {"label": "Lead Revenue", "value": format_currency(chart_data[0]['revenue'])},
                 {"label": "Market Share", "value": f"{chart_data[0]['share']}%"}
             ]
         }
@@ -72,7 +73,7 @@ def process_natural_language_query(df: pd.DataFrame, question: str) -> dict:
             },
             "metrics_highlight": [
                 {"label": "Top Product", "value": top_prod},
-                {"label": "Product Revenue", "value": f"₹{top_rev/1e7:.2f} Cr"},
+                {"label": "Product Revenue", "value": format_currency(top_rev)},
                 {"label": "Fastest Growth", "value": f"+{trends['rising_products'][0]['growth']}%" if trends['rising_products'] else "+34.2%"}
             ]
         }

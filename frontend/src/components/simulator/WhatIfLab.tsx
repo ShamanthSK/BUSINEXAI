@@ -1,48 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sliders, TrendingUp, DollarSign, Users, Award, RotateCcw, Download, FileSpreadsheet, Camera } from 'lucide-react';
+import { Sliders, TrendingUp, DollarSign, Users, Award, RotateCcw, FileSpreadsheet, Target, ArrowRight } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts';
 import type { WhatIfResponse } from '../../types';
-import { runWhatIfSim } from '../../api/client';
+import { runWhatIfSim, downloadWhatIfExcel } from '../../api/client';
+
+import { formatCompactCurrency } from '../../utils/formatters';
 
 interface WhatIfLabProps {
   activeDatasetId: string;
-  initialParams?: { marketing: number; price: number; conversion: number } | null;
+  initialParams?: { marketing_change_pct: number; price_change_pct: number; conversion_change_pct: number };
 }
 
 export const WhatIfLab: React.FC<WhatIfLabProps> = ({ activeDatasetId, initialParams }) => {
-  const [marketingChange, setMarketingChange] = useState(50.0);
-  const [priceChange, setPriceChange] = useState(-5.0);
-  const [conversionChange, setConversionChange] = useState(25.0);
+  const [marketingChange, setMarketingChange] = useState<number>(initialParams?.marketing_change_pct || 0);
+  const [priceChange, setPriceChange] = useState<number>(initialParams?.price_change_pct || 0);
+  const [conversionChange, setConversionChange] = useState<number>(initialParams?.conversion_change_pct || 0);
   const [simResult, setSimResult] = useState<WhatIfResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isExportingExcel, setIsExportingExcel] = useState(false);
 
   useEffect(() => {
     if (initialParams) {
-      setMarketingChange(initialParams.marketing);
-      setPriceChange(initialParams.price);
-      setConversionChange(initialParams.conversion);
+      setMarketingChange(initialParams.marketing_change_pct);
+      setPriceChange(initialParams.price_change_pct);
+      setConversionChange(initialParams.conversion_change_pct);
     }
   }, [initialParams]);
 
-  const fetchSimulation = async () => {
-    setLoading(true);
-    try {
-      const res = await runWhatIfSim(activeDatasetId, {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(true);
+      runWhatIfSim(activeDatasetId, {
         marketing_change_pct: marketingChange,
         price_change_pct: priceChange,
         conversion_change_pct: conversionChange
+      }).then(res => {
+        setSimResult(res);
+        setLoading(false);
+      }).catch(err => {
+        console.error('What-if sim failed', err);
+        setLoading(false);
       });
-      setSimResult(res);
-    } catch (err) {
-      console.error('What-if sim failed', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    }, 150);
 
-  useEffect(() => {
-    fetchSimulation();
+    return () => clearTimeout(timer);
   }, [marketingChange, priceChange, conversionChange, activeDatasetId]);
 
   const handleReset = () => {
@@ -51,87 +53,23 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({ activeDatasetId, initialPa
     setConversionChange(0.0);
   };
 
-  const handleDownloadReport = () => {
-    if (!simResult) return;
-    const lines = [
-      'BUSINEX AI STRATEGIC WHAT-IF SIMULATION REPORT',
-      `Generated Date,${new Date().toLocaleString()}`,
-      `Dataset ID,${activeDatasetId}`,
-      '',
-      '--- SIMULATED ASSUMPTIONS ---',
-      `Marketing Spend Shift (%),${marketingChange}% (${estMktRupees >= 0 ? '+' : ''}₹${estMktRupees.toLocaleString('en-IN')}/mo)`,
-      `Price Adjustment (%),${priceChange}%`,
-      `Conversion Velocity Change (%),${conversionChange}%`,
-      '',
-      '--- SCENARIO OUTCOME SUMMARY ---',
-      `Baseline Revenue,${simResult.baseline.revenue_formatted}`,
-      `Projected Revenue,${simResult.projected.revenue_formatted} (${simResult.projected.revenue_change_pct >= 0 ? '+' : ''}${simResult.projected.revenue_change_pct}%)`,
-      `Baseline Profit,${simResult.baseline.profit_formatted}`,
-      `Projected Profit,${simResult.projected.profit_formatted} (${simResult.projected.profit_change_pct >= 0 ? '+' : ''}${simResult.projected.profit_change_pct}%)`,
-      `Projected Net Profit Margin,${simResult.projected.profit_margin}%`,
-      `Projected Customers / Accounts,${simResult.projected.customers}`,
-      `Expected Marketing ROI,${simResult.projected.expected_roi}%`,
-      '',
-      '--- MONTHLY TRAJECTORY BREAKDOWN ---',
-      'Month,Baseline Revenue (INR),Simulated Projected Revenue (INR),Revenue Delta (INR)'
-    ];
-
-    simResult.chart_data.forEach((row: any) => {
-      const delta = row.projected_revenue - row.baseline_revenue;
-      lines.push(`${row.month},${row.baseline_revenue},${row.projected_revenue},${delta}`);
-    });
-
-    const csvContent = 'data:text/csv;charset=utf-8,' + lines.join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `BUSINEX_WhatIf_Simulation_Report_${activeDatasetId}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleExportExcel = async () => {
+    setIsExportingExcel(true);
+    try {
+      await downloadWhatIfExcel(activeDatasetId, {
+        marketing_change_pct: marketingChange,
+        price_change_pct: priceChange,
+        conversion_change_pct: conversionChange
+      });
+    } finally {
+      setIsExportingExcel(false);
+    }
   };
 
-  const handleDownloadChartPNG = () => {
-    const container = document.getElementById('whatif-chart-container');
-    if (!container) return;
-    const svgElement = container.querySelector('svg');
-    if (!svgElement) return;
-
-    const svgData = new XMLSerializer().serializeToString(svgElement);
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const img = new Image();
-
-    const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(svgBlob);
-
-    img.onload = () => {
-      canvas.width = (img.width || 800) * 2;
-      canvas.height = (img.height || 400) * 2;
-      if (ctx) {
-        ctx.fillStyle = '#00113a';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      }
-      const pngUrl = canvas.toDataURL('image/png');
-      const downloadLink = document.createElement('a');
-      downloadLink.href = pngUrl;
-      downloadLink.download = `BUSINEX_WhatIf_Trajectory_Chart_${activeDatasetId}.png`;
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
-      URL.revokeObjectURL(url);
-    };
-
-    img.src = url;
-  };
-
-  // Helper for rupee spend estimation
   const estMktRupees = (marketingChange / 100) * 1000000;
 
   return (
     <div className="space-y-8 p-6">
-      {/* Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
@@ -145,12 +83,14 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({ activeDatasetId, initialPa
 
         <div className="flex items-center space-x-3">
           <button
-            onClick={handleDownloadReport}
-            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md shadow-emerald-600/30 transition-all flex items-center gap-2"
+            onClick={handleExportExcel}
+            disabled={isExportingExcel}
+            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md shadow-emerald-600/30 transition-all flex items-center gap-2 disabled:opacity-50"
           >
-            <Download className="w-4 h-4" />
-            <span>Download Simulation Report (CSV)</span>
+            <FileSpreadsheet className="w-4 h-4 text-emerald-200" />
+            <span>{isExportingExcel ? 'Generating Excel...' : 'Export Excel (.xlsx)'}</span>
           </button>
+
 
           <button
             onClick={handleReset}
@@ -162,9 +102,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({ activeDatasetId, initialPa
         </div>
       </div>
 
-      {/* Sliders Control Panel & Output Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Sliders Panel (1 Col) */}
         <div className="p-6 rounded-2xl glass-panel space-y-6">
           <div className="flex items-center justify-between border-b border-slate-800 pb-3">
             <h3 className="text-base font-bold text-white">
@@ -316,14 +254,6 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({ activeDatasetId, initialPa
                 <span>Baseline vs. Simulated Trajectory Morphing</span>
               </h3>
 
-              <button
-                onClick={handleDownloadChartPNG}
-                className="px-3 py-1.5 rounded-lg glass-panel hover:bg-indigo-600/40 border-indigo-500/40 text-[11px] text-indigo-300 font-semibold transition-all flex items-center gap-1.5 shadow"
-                title="Download Graph Image as PNG"
-              >
-                <Camera className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Download Graph (PNG)</span>
-              </button>
             </div>
 
             <div className="h-64 w-full">
@@ -332,7 +262,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({ activeDatasetId, initialPa
                   <LineChart data={simResult.chart_data}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                     <XAxis dataKey="month" stroke="#94a3b8" fontSize={11} tickLine={false} />
-                    <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} tickFormatter={(v) => `₹${(v/1e5).toFixed(0)}L`} />
+                    <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} tickFormatter={formatCompactCurrency} />
                     <Tooltip formatter={(val: any) => `₹${Number(val).toLocaleString()}`} />
                     <Legend wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }} />
                     <Line type="monotone" name="Baseline Trajectory" dataKey="baseline_revenue" stroke="#94a3b8" strokeDasharray="4 4" strokeWidth={2} dot={false} />

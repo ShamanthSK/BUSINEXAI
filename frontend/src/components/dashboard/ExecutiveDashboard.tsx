@@ -9,7 +9,8 @@ import {
   HelpCircle,
   BarChart2,
   Filter,
-  Layers
+  Layers,
+  FileSpreadsheet
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -23,10 +24,13 @@ import {
   CartesianGrid
 } from 'recharts';
 import type { KPIData, TrendData } from '../../types';
+import { downloadDatasetExcel } from '../../api/client';
+import { formatCompactCurrency } from '../../utils/formatters';
 
 interface ExecutiveDashboardProps {
   kpis: KPIData;
   trends: TrendData;
+  activeDatasetId?: string;
   onOpenWhyModal: (metricName: string) => void;
   onNavigateTab: (tab: string) => void;
 }
@@ -34,11 +38,22 @@ interface ExecutiveDashboardProps {
 export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
   kpis,
   trends,
+  activeDatasetId = 'demo-retail-2026',
   onOpenWhyModal,
   onNavigateTab,
 }) => {
   const [salesView, setSalesView] = useState<'region' | 'product' | 'category'>('product');
   const [chartType, setChartType] = useState<'curve' | 'bar'>('curve');
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportExcel = async () => {
+    setIsExporting(true);
+    try {
+      await downloadDatasetExcel(activeDatasetId);
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const getSalesChartData = () => {
     switch (salesView) {
@@ -232,7 +247,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                   <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} tickLine={false} />
-                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} tickFormatter={(v) => `₹${(v/1e5).toFixed(0)}L`} />
+                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} tickFormatter={formatCompactCurrency} />
                   <Tooltip
                     formatter={(value: any) => [`₹${Number(value).toLocaleString()}`, 'Revenue']}
                     contentStyle={{ backgroundColor: 'rgba(15,23,42,0.95)', borderColor: 'rgba(99,102,241,0.3)', borderRadius: '8px' }}
@@ -243,7 +258,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
                 <BarChart data={trends.revenue_over_time}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                   <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} tickLine={false} />
-                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} tickFormatter={(v) => `₹${(v/1e5).toFixed(0)}L`} />
+                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} tickFormatter={formatCompactCurrency} />
                   <Tooltip
                     formatter={(value: any) => [`₹${Number(value).toLocaleString()}`, 'Revenue']}
                     contentStyle={{ backgroundColor: 'rgba(15,23,42,0.95)', borderColor: 'rgba(99,102,241,0.3)', borderRadius: '8px' }}
@@ -288,7 +303,7 @@ export const ExecutiveDashboard: React.FC<ExecutiveDashboardProps> = ({
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={getSalesChartData().slice(0, 6)} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis type="number" stroke="#94a3b8" fontSize={10} tickFormatter={(v) => `₹${(v/1e5).toFixed(0)}L`} />
+                <XAxis type="number" stroke="#94a3b8" fontSize={10} tickFormatter={formatCompactCurrency} />
                 <YAxis dataKey="key" type="category" stroke="#94a3b8" fontSize={10} width={90} tickLine={false} />
                 <Tooltip
                   formatter={(value: any) => [`₹${Number(value).toLocaleString()}`, 'Revenue']}

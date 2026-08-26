@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from app.engine.formatters import format_currency
 
 def run_what_if_simulation(
     df: pd.DataFrame,
@@ -78,7 +79,7 @@ def run_what_if_simulation(
         f"adjusting marketing by {marketing_change_pct:+.1f}%, price by {price_change_pct:+.1f}%, "
         f"and conversion by {conversion_change_pct:+.1f}% is projected to generate "
         f"{'an increase' if revenue_change_pct >= 0 else 'a decrease'} of {abs(revenue_change_pct):.1f}% in total revenue "
-        f"(₹{proj_revenue/1e7:.2f} Cr) and {abs(profit_change_pct):.1f}% in net profit."
+        f"({format_currency(proj_revenue)}) and {abs(profit_change_pct):.1f}% in net profit."
     )
 
     return {
@@ -89,17 +90,17 @@ def run_what_if_simulation(
         },
         "baseline": {
             "revenue": base_revenue,
-            "revenue_formatted": f"₹{base_revenue / 1e7:.2f} Cr" if base_revenue >= 1e7 else f"₹{base_revenue:,.0f}",
+            "revenue_formatted": format_currency(base_revenue),
             "profit": base_profit,
-            "profit_formatted": f"₹{base_profit / 1e7:.2f} Cr" if base_profit >= 1e7 else f"₹{base_profit:,.0f}",
+            "profit_formatted": format_currency(base_profit),
             "customers": base_customers
         },
         "projected": {
             "revenue": round(proj_revenue, 2),
-            "revenue_formatted": f"₹{proj_revenue / 1e7:.2f} Cr" if proj_revenue >= 1e7 else f"₹{proj_revenue:,.0f}",
+            "revenue_formatted": format_currency(proj_revenue),
             "revenue_change_pct": revenue_change_pct,
             "profit": round(proj_profit, 2),
-            "profit_formatted": f"₹{proj_profit / 1e7:.2f} Cr" if proj_profit >= 1e7 else f"₹{proj_profit:,.0f}",
+            "profit_formatted": format_currency(proj_profit),
             "profit_change_pct": profit_change_pct,
             "profit_margin": proj_profit_margin,
             "customers": proj_customers,

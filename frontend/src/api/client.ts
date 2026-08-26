@@ -1027,3 +1027,50 @@ export async function fetchExecutiveReport(datasetId: string) {
     };
   }
 }
+
+export async function downloadDatasetExcel(datasetId: string) {
+  try {
+    const res = await fetch(`${API_BASE}/datasets/${datasetId}/export/excel`);
+    if (!res.ok) throw new Error('Failed to generate Excel report');
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `STRATOS_Executive_Report_${datasetId}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error('Failed to download Excel report:', err);
+    alert('Failed to download Excel report. Please ensure the backend is running.');
+  }
+}
+
+export async function downloadWhatIfExcel(
+  datasetId: string,
+  params: { marketing_change_pct: number; price_change_pct: number; conversion_change_pct: number }
+) {
+  try {
+    const res = await fetch(`${API_BASE}/datasets/${datasetId}/what-if/export/excel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    if (!res.ok) throw new Error('Failed to generate What-If Excel report');
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `STRATOS_WhatIf_Simulation_${datasetId}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error('Failed to download What-If Excel report:', err);
+    alert('Failed to download What-If Excel report. Please ensure backend is running.');
+  }
+}
+
+
