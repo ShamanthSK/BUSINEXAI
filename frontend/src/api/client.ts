@@ -1106,11 +1106,11 @@ function generateFallbackExecutiveReportExcel(datasetId: string) {
   </body>
   </html>
   `;
-  const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+  const blob = new Blob([html], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `STRATOS_Executive_Report_${datasetId}.xls`;
+  link.download = `STRATOS_Executive_Report_${datasetId}.xlsx`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -1189,11 +1189,11 @@ function generateFallbackWhatIfExcel(datasetId: string, params: { marketing_chan
   </body>
   </html>
   `;
-  const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+  const blob = new Blob([html], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `STRATOS_WhatIf_Simulation_${datasetId}.xls`;
+  link.download = `STRATOS_WhatIf_Simulation_${datasetId}.xlsx`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
