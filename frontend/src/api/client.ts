@@ -1032,7 +1032,10 @@ export async function fetchExecutiveReport(datasetId: string) {
 export async function downloadDatasetExcel(datasetId: string) {
   try {
     const res = await fetch(`${API_BASE}/datasets/${datasetId}/export/excel`);
-    if (!res.ok) throw new Error('Failed to generate Excel report');
+    const contentType = res.headers.get('content-type') || '';
+    if (!res.ok || contentType.includes('text/html') || contentType.includes('application/json')) {
+      throw new Error('Failed to generate Excel report');
+    }
     const blob = await res.blob();
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -1044,7 +1047,7 @@ export async function downloadDatasetExcel(datasetId: string) {
     window.URL.revokeObjectURL(url);
   } catch (err) {
     console.warn('Backend download failed, generating client-side report fallback:', err);
-    generateFallbackExecutiveReportExcel(datasetId);
+    await generateFallbackExecutiveReportExcel(datasetId);
   }
 }
 
@@ -1058,7 +1061,10 @@ export async function downloadWhatIfExcel(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(params),
     });
-    if (!res.ok) throw new Error('Failed to generate What-If Excel report');
+    const contentType = res.headers.get('content-type') || '';
+    if (!res.ok || contentType.includes('text/html') || contentType.includes('application/json')) {
+      throw new Error('Failed to generate What-If Excel report');
+    }
     const blob = await res.blob();
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -1070,7 +1076,7 @@ export async function downloadWhatIfExcel(
     window.URL.revokeObjectURL(url);
   } catch (err) {
     console.warn('Backend download failed, generating client-side What-If report fallback:', err);
-    generateFallbackWhatIfExcel(datasetId, params);
+    await generateFallbackWhatIfExcel(datasetId, params);
   }
 }
 
@@ -1151,7 +1157,7 @@ async function generateFallbackExecutiveReportExcel(datasetId: string) {
   ws.getColumn(5).width = 18;
 
   const buffer = await workbook.xlsx.writeBuffer();
-  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const blob = new Blob([new Uint8Array(buffer as ArrayBuffer)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
@@ -1274,7 +1280,7 @@ async function generateFallbackWhatIfExcel(datasetId: string, params: { marketin
   ws.getColumn(4).width = 22;
 
   const buffer = await workbook.xlsx.writeBuffer();
-  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const blob = new Blob([new Uint8Array(buffer as ArrayBuffer)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
